@@ -38,7 +38,7 @@ if [ -f /boot/vmlinuz-$kernel ] && [ -f /boot/System.map-$kernel ] &&
 then
   echo 'Everything is OK. Finishing installation...'
   update-initramfs -ck $kernel
-  update-grub
+  grub-mkconfig -o /boot/grub/grub.cfg
   ln -fs boot/vmlinuz-$kernel /vmlinuz
   ln -fs boot/initrd.img-$kernel /initrd.img
   rm -f tar.exc kernel*.rpm
