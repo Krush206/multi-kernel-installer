@@ -11,10 +11,10 @@ fi
 if [ -f /usr/bin/alien ]
 then
   cd ~
-  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-core-$kernel.rpm
-  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-$kernel.rpm
-  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-extra-$kernel.rpm
-  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-internal-$kernel.rpm
+  wget -O kernel-core-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-core-$kernel.rpm
+  wget -O kernel-modules-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-$kernel.rpm
+  wget -O kernel-modules-extra-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-extra-$kernel.rpm
+  wget -O kernel-modules-internal-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-internal-$kernel.rpm
   alien -t kernel*.rpm
   mkfifo tar.exc
   echo -n ./usr > tar.exc & tar -C /usr -X tar.exc -zxvf kernel-core-`echo $kernel | sed "s/-.*//"`.tgz 
