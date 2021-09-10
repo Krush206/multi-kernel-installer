@@ -1,0 +1,44 @@
+#!/bin/sh
+version=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/ | sed -n '/<a href="[0-9]*\/">[0-9]*\/<\/a>/ s/[^0-9]*//p' | dd bs=2 count=1`
+kernel=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/ | grep kernel-core | dd bs=21 skip=1 | sed 's/\.rpm.*//'`
+
+if ! echo `whoami` | grep -Fqx root
+then
+  echo 'Must be root.'
+  exit
+fi
+
+if [ -f /usr/bin/alien ]
+then
+  cd ~
+  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/35/Everything/x86_64/os/Packages/k/kernel-core-$kernel.rpm
+  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/35/Everything/x86_64/os/Packages/k/kernel-modules-$kernel.rpm
+  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/35/Everything/x86_64/os/Packages/k/kernel-modules-extra-$kernel.rpm
+  wget http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/35/Everything/x86_64/os/Packages/k/kernel-modules-internal-$kernel.rpm
+  alien -t kernel*.rpm
+  mkfifo tar.exc
+  echo -n ./usr > tar.exc & tar -C /usr -X tar.exc -zxvf kernel-core-`echo $kernel | sed "s/-.*//"`.tgz 
+  tar -C /usr -zxvf kernel-modules-`echo $kernel | sed "s/-.*//"`.tgz 
+  echo -n ./etc > tar.exc & tar -C /usr -X tar.exc -zxvf kernel-modules-extra-`echo $kernel | sed "s/-.*//"`.tgz 
+  echo -n ./lib > tar.exc & tar -C / -X tar.exc -zxvf kernel-modules-extra-`echo $kernel | sed "s/-.*//"`.tgz 
+  tar -C /usr -zxvf kernel-modules-internal-`echo $kernel | sed "s/-.*//"`.tgz
+  ln /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel
+  ln /lib/modules/$kernel/System.map /boot/System.map-$kernel
+  ln /lib/modules/$kernel/config /boot/config-$kernel
+else
+  echo 'You do not have alien installed. Install alien and try again.'
+fi
+
+if [ -f /boot/vmlinuz-$kernel ] && [ -f /boot/System.map-$kernel ] &&
+   [ -f /boot/config-$kernel ]
+then
+  echo 'Everything is OK. Finishing installation...'
+  update-initramfs -ck $kernel
+  update-grub
+  ln -fs boot/vmlinuz-$kernel /vmlinuz
+  ln -fs boot/initrd.img-$kernel /initrd.img
+  rm -f tar.exc kernel*.rpm
+  echo 'Installation is complete! Type in "shutdown -r now" to restart.'
+else
+  echo 'Installation aborted due to missing files! Try again!'
+fi
