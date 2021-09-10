@@ -27,6 +27,7 @@ then
   ln /lib/modules/$kernel/config /boot/config-$kernel
 else
   echo 'You do not have alien installed. Install alien and try again.'
+  exit
 fi
 
 if [ -f /boot/vmlinuz-$kernel ] && [ -f /boot/System.map-$kernel ] &&
