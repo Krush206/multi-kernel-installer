@@ -31,7 +31,10 @@ else
 fi
 
 if [ -f /boot/vmlinuz-$kernel ] && [ -f /boot/System.map-$kernel ] &&
-   [ -f /boot/config-$kernel ]
+   [ -f /boot/config-$kernel ] && file /boot/vmlinuz-$kernel | \
+   grep -Fq 'Linux kernel x86 boot executable bzImage' && file /boot/System.map-$kernel | \
+   grep -Fq 'ASCII text' && file /boot/config-$kernel | \
+   grep -Fq 'Linux make config build file'
 then
   echo 'Everything is OK. Finishing installation...'
   update-initramfs -ck $kernel
@@ -42,5 +45,5 @@ then
   echo 'Installation is complete! Type in "shutdown -r now" to restart.'
 else
   rm -f tar.exc
-  echo 'Installation aborted due to missing files! Try again!'
+  echo 'Installation aborted due to missing or corrupted files! Try again!'
 fi
