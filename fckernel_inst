@@ -40,5 +40,6 @@ then
   rm -f tar.exc kernel*.rpm
   echo 'Installation is complete! Type in "shutdown -r now" to restart.'
 else
+  rm -f tar.exc
   echo 'Installation aborted due to missing files! Try again!'
 fi
