@@ -42,7 +42,7 @@ then
   ln -fs boot/vmlinuz-$kernel /vmlinuz
   ln -fs boot/initrd.img-$kernel /initrd.img
   rm -f tar.exc kernel*.rpm
-  echo 'Installation is complete! Type in "shutdown -r now" to restart.'
+  echo 'Installation is complete! Type in (as root) "shutdown -r now" to restart.'
 else
   rm -f tar.exc
   echo 'Installation aborted due to missing or corrupted files! Try again!'
