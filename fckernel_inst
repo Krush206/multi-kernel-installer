@@ -22,9 +22,9 @@ then
   echo -n ./etc > tar.exc & tar -C /usr -X tar.exc -zxvf kernel-modules-extra-`echo $kernel | sed "s/-.*//"`.tgz 
   echo -n ./lib > tar.exc & tar -C / -X tar.exc -zxvf kernel-modules-extra-`echo $kernel | sed "s/-.*//"`.tgz 
   tar -C /usr -zxvf kernel-modules-internal-`echo $kernel | sed "s/-.*//"`.tgz
-  ln /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel
-  ln /lib/modules/$kernel/System.map /boot/System.map-$kernel
-  ln /lib/modules/$kernel/config /boot/config-$kernel
+  ln /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel || cp /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel
+  ln /lib/modules/$kernel/System.map /boot/System.map-$kernel || cp /lib/modules/$kernel/System.map /boot/System.map-$kernel
+  ln /lib/modules/$kernel/config /boot/config-$kernel || cp /lib/modules/$kernel/config /boot/config-$kernel
 else
   echo 'You do not have alien installed. Install alien and try again.'
   exit
