@@ -17,10 +17,10 @@ then
   wget -O kernel-modules-extra-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-extra-$kernel.rpm
   wget -O kernel-modules-internal-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-internal-$kernel.rpm
   mkfifo cpio.exc
-  echo -n ./usr/* > cpio.exc & rpm2cpio kernel-core-$kernel.rpm | cpio -D /usr -idmE cpio.exc
+  echo -n ./lib/* > cpio.exc & rpm2cpio kernel-core-$kernel.rpm | cpio -D /usr -idmE cpio.exc
   rpm2cpio kernel-modules-$kernel.rpm | cpio -D /usr -idm
-  echo -n ./etc/* > cpio.exc & rpm2cpio kernel-modules-extra-$kernel.rpm | cpio -D /usr -idmE cpio.exc
-  echo -n ./lib/* > cpio.exc & rpm2cpio kernel-modules-extra-$kernel.rpm | cpio -D / -idmE cpio.exc
+  echo -n ./etc/* > cpio.exc & rpm2cpio kernel-modules-extra-$kernel.rpm | cpio -D / -idmE cpio.exc
+  echo -n ./lib/* > cpio.exc & rpm2cpio kernel-modules-extra-$kernel.rpm | cpio -D /usr -idmE cpio.exc
   rpm2cpio kernel-modules-internal-$kernel.rpm | cpio -D /usr -idm
   ln /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel || cp /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel
   ln /lib/modules/$kernel/System.map /boot/System.map-$kernel || cp /lib/modules/$kernel/System.map /boot/System.map-$kernel
