@@ -23,6 +23,7 @@ then
   echo -n ./etc/* > cpio.exc & rpm2cpio kernel-modules-extra-$kernel.rpm | cpio -D / -idmE cpio.exc
   echo -n ./lib/* > cpio.exc & rpm2cpio kernel-modules-extra-$kernel.rpm | cpio -D /usr -idmE cpio.exc
   rpm2cpio kernel-modules-internal-$kernel.rpm | cpio -D /usr -idm
+  rm -f cpio.exc
   ln /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel || cp /lib/modules/$kernel/vmlinuz /boot/vmlinuz-$kernel
   ln /lib/modules/$kernel/System.map /boot/System.map-$kernel || cp /lib/modules/$kernel/System.map /boot/System.map-$kernel
   ln /lib/modules/$kernel/config /boot/config-$kernel || cp /lib/modules/$kernel/config /boot/config-$kernel
@@ -42,9 +43,8 @@ then
   grub-mkconfig -o /boot/grub/grub.cfg
   ln -fs boot/vmlinuz-$kernel /vmlinuz
   ln -fs boot/initrd.img-$kernel /initrd.img
-  rm -f cpio.exc kernel*.rpm
+  rm -f kernel*.rpm
   echo 'Installation is complete! Type in (as root) "shutdown -r now" to restart.'
 else
-  rm -f cpio.exc
   echo 'Installation aborted due to missing or corrupted files! Try again!'
 fi
