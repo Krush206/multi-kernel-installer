@@ -1,9 +1,25 @@
 #!/bin/sh
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
-wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-image-unsigned-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
-wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
-wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-extra-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
+echo Do you wish to install the generic or lowlatency kernel?
+read -r option
+
+if echo $option | grep -Fqx generic
+then
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-image-unsigned-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-extra-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
+fi
+
+if echo $option | grep -Fqx lowlatency
+then
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-image-unsigned-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-extra-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
+else
+  echo You must type in a valid kernel build.
+  exit
+fi
 
 ar -p linux-image-unsigned-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C / -Jxvf -
 ar -p linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C / -Jxvf - ./boot
