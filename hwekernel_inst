@@ -1,6 +1,12 @@
 #!/bin/sh
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 
+if ! echo `whoami` | grep -Fqx root
+then
+  echo Must be root.
+  exit
+fi
+
 echo Do you wish to install the generic or lowlatency kernel?
 read -r option
 
