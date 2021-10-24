@@ -15,9 +15,7 @@ then
   wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-image-unsigned-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
   wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
   wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-extra-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
-fi
-
-if echo $option | grep -Fqx lowlatency
+elif echo $option | grep -Fqx lowlatency
 then
   wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-image-unsigned-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
   wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
