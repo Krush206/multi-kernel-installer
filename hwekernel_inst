@@ -44,3 +44,5 @@ then
   update-initramfs -ck `wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-lowlatency.*' | sed -n '$s/-lowlatency.*/-lowlatency/p' | dd bs=21 skip=1`
   grub-mkconfig -o /boot/grub/grub.cfg
 fi
+
+rm -f linux-image-unsigned-*.deb linux-modules-*.deb
