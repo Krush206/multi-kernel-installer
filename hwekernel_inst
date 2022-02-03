@@ -28,12 +28,12 @@ else
   exit
 fi
 
-ar -p linux-image-unsigned-$kernel.deb | tar -C / -Jxvf -
-ar -p linux-modules-$kernel.deb | tar -C / -Jxvf - ./boot
-ar -p linux-modules-$kernel.deb | tar -C / -Jxvf - ./usr
-ar -p linux-modules-$kernel.deb | tar -C /usr -Jxvf - ./lib
-ar -p linux-modules-extra-$kernel.deb | tar -C /usr -Jxvf - ./lib
-ar -p linux-modules-extra-$kernel.deb | tar -C / -Jxvf - ./usr
+ar -p linux-image-unsigned-$kernel.deb data.tar.xz | tar -C / -Jxvf -
+ar -p linux-modules-$kernel.deb data.tar.xz | tar -C / -Jxvf - ./boot
+ar -p linux-modules-$kernel.deb data.tar.xz | tar -C / -Jxvf - ./usr
+ar -p linux-modules-$kernel.deb data.tar.xz | tar -C /usr -Jxvf - ./lib
+ar -p linux-modules-extra-$kernel.deb data.tar.xz | tar -C /usr -Jxvf - ./lib
+ar -p linux-modules-extra-$kernel.deb data.tar.xz | tar -C / -Jxvf - ./usr
 
 if echo $option | grep -Fqx generic
 then
