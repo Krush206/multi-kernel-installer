@@ -1,5 +1,6 @@
 #!/bin/sh
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+kver=`wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/ | grep -o 'linux-hwe-[0-9].*' | sed -n '$s/\/.*//p' | dd bs=10 skip=1`
 
 if ! echo `whoami` | grep -Fqx root
 then
@@ -12,25 +13,34 @@ read -r option
 
 if echo $option | grep -Fqx generic
 then
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-image-unsigned-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-extra-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb
+  kernel=`wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-generic.*' | sed -n '$s/\.deb.*//p' | dd bs=21 skip=1`
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-image-unsigned-$kernel.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-$kernel.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
 elif echo $option | grep -Fqx lowlatency
 then
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-image-unsigned-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-5.13/linux-modules-extra-5.13.0-19-lowlatency_5.13.0-19.19~20.04.1_amd64.deb
+  kernel=`wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-lowlatency.*' | sed -n '$s/\.deb.*//p' | dd bs=21 skip=1`
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-image-unsigned-$kernel.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-$kernel.deb
+  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
 else
   echo You must type in a valid kernel build.
   exit
 fi
 
-ar -p linux-image-unsigned-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C / -Jxvf -
-ar -p linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C / -Jxvf - ./boot
-ar -p linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C / -Jxvf - ./usr
-ar -p linux-modules-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C /usr -Jxvf - ./lib
-ar -p linux-modules-extra-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C /usr -Jxvf - ./lib
-ar -p linux-modules-extra-5.13.0-19-generic_5.13.0-19.19~20.04.1_amd64.deb | tar -C / -Jxvf - ./usr
+ar -p linux-image-unsigned-$kernel.deb | tar -C / -Jxvf -
+ar -p linux-modules-$kernel.deb | tar -C / -Jxvf - ./boot
+ar -p linux-modules-$kernel.deb | tar -C / -Jxvf - ./usr
+ar -p linux-modules-$kernel.deb | tar -C /usr -Jxvf - ./lib
+ar -p linux-modules-extra-$kernel.deb | tar -C /usr -Jxvf - ./lib
+ar -p linux-modules-extra-$kernel.deb | tar -C / -Jxvf - ./usr
 
-update-initramfs -ck 5.13.0-19-generic
-grub-mkconfig -o /boot/grub/grub.cfg
+if echo $option | grep -Fqx generic
+then
+  update-initramfs -ck `wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-generic.*' | sed -n '$s/-generic.*/-generic/p' | dd bs=21 skip=1`
+  grub-mkconfig -o /boot/grub/grub.cfg
+elif echo $option | grep -Fqx lowlatency
+then
+  update-initramfs -ck `wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-lowlatency.*' | sed -n '$s/-lowlatency.*/-lowlatency/p' | dd bs=21 skip=1`
+  grub-mkconfig -o /boot/grub/grub.cfg
+fi
