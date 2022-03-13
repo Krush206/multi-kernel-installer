@@ -43,7 +43,7 @@ then
   grub-mkconfig -o /boot/grub/grub.cfg
   ln -fs boot/vmlinuz-$kernel /vmlinuz
   ln -fs boot/initrd.img-$kernel /initrd.img
-  rm -f kernel*.rpm
+  rm -f kernel-core-*.rpm kernel-modules-*.rpm
   echo 'Installation is complete! Type in (as root) "shutdown -r now" to restart.'
 else
   echo 'Installation aborted due to missing or corrupted files! Try again!'
