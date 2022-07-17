@@ -3,11 +3,8 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 version=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/ | sed -n '/<a href="[0-9]*\/">[0-9]*\/<\/a>/ s/[^0-9]*//p' | dd bs=2 count=1`
 kernel=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/ | grep kernel-core | dd bs=21 skip=1 | sed 's/\.rpm.*//'`
 
-if ! echo `whoami` | grep -Fqx root
-then
-  echo 'Must be root.'
-  exit
-fi
+( whoami | grep -Fqx root ) || \
+( echo Must be root. ; exit 1 )
 
 if [ -f /usr/bin/rpm2cpio ]
 then
