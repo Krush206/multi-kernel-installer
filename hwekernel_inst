@@ -3,7 +3,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 kver=`wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/ | grep -o 'linux-hwe-[0-9].*' | sed -n '$s/\/.*//p' | dd bs=10 skip=1`
 
 ( whoami | grep -Fqx root ) || \
-( echo Must be root. ; exit 1 )
+eval 'echo Must be root. ; exit 1'
 
 echo Do you wish to install the generic or lowlatency kernel?
 read -r option

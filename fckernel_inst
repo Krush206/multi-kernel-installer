@@ -4,7 +4,7 @@ version=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/develop
 kernel=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/ | grep kernel-core | dd bs=21 skip=1 | sed 's/\.rpm.*//'`
 
 ( whoami | grep -Fqx root ) || \
-( echo Must be root. ; exit 1 )
+eval 'echo Must be root. ; exit 1'
 
 if [ -f /usr/bin/rpm2cpio ]
 then
