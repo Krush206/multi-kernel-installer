@@ -22,7 +22,7 @@ then
   wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
 else
   echo You must type in a valid kernel build.
-  exit
+  exit 1
 fi
 
 ar -p linux-image-unsigned-$kernel.deb data.tar.xz | tar -C / -Jxvf -

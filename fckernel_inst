@@ -26,7 +26,7 @@ then
   ln /lib/modules/$kernel/config /boot/config-$kernel || cp /lib/modules/$kernel/config /boot/config-$kernel
 else
   echo 'You do not have rpm2cpio installed. Install rpm2cpio and try again.'
-  exit
+  exit 1
 fi
 
 if [ -f /boot/vmlinuz-$kernel ] && [ -f /boot/System.map-$kernel ] &&
@@ -44,4 +44,5 @@ then
   echo 'Installation is complete! Type in (as root) "shutdown -r now" to restart.'
 else
   echo 'Installation aborted due to missing or corrupted files! Try again!'
+  exit 1
 fi
