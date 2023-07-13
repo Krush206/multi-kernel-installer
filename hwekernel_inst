@@ -1,6 +1,7 @@
 #!/bin/sh
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-kver=`wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/ | grep -o 'linux-hwe-[0-9].*' | sed -n '$s/\/.*//p' | dd bs=10 skip=1`
+host="http://archive.ubuntu.com/ubuntu/pool/main"
+kver="`wget -O - $host/l/ | grep -o 'linux-hwe-[0-9].*' | sed -n '$s/\/.*//p' | dd bs=10 skip=1`"
 
 ( whoami | grep -Fqx root ) || \
 eval 'echo Must be root. ; exit 1'
@@ -10,35 +11,36 @@ read -r option
 
 if echo $option | grep -Fqx generic
 then
-  kernel=`wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-generic.*' | sed -n '$s/\.deb.*//p' | dd bs=21 skip=1`
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-image-unsigned-$kernel.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-$kernel.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
+  kernel="`wget -O - $host/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-generic.*' | sed -n '$s/\.deb.*//p' | dd bs=21 skip=1`"
+  wget $host/l/linux-hwe-$kver/linux-image-unsigned-$kernel.deb
+  wget $host/l/linux-hwe-$kver/linux-modules-$kernel.deb
+  wget $host/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
 elif echo $option | grep -Fqx lowlatency
 then
-  kernel=`wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-lowlatency.*' | sed -n '$s/\.deb.*//p' | dd bs=21 skip=1`
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-image-unsigned-$kernel.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-$kernel.deb
-  wget http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
+  kernel="`wget -O - $host/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-lowlatency.*' | sed -n '$s/\.deb.*//p' | dd bs=21 skip=1`"
+  wget $host/l/linux-hwe-$kver/linux-image-unsigned-$kernel.deb
+  wget $host/l/linux-hwe-$kver/linux-modules-$kernel.deb
+  wget $host/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
 else
   echo You must type in a valid kernel build.
   exit 1
 fi
 
-ar -p linux-image-unsigned-$kernel.deb data.tar.xz | tar -C / -Jxvf -
-ar -p linux-modules-$kernel.deb data.tar.xz | tar -C / -Jxvf - ./boot
-ar -p linux-modules-$kernel.deb data.tar.xz | tar -C / -Jxvf - ./usr
-ar -p linux-modules-$kernel.deb data.tar.xz | tar -C /usr -Jxvf - ./lib
-ar -p linux-modules-extra-$kernel.deb data.tar.xz | tar -C /usr -Jxvf - ./lib
-ar -p linux-modules-extra-$kernel.deb data.tar.xz | tar -C / -Jxvf - ./usr
+kpkg="data.tar"
+ar -p linux-image-unsigned-$kernel.deb $kpkg | tar -C / -xvf -
+ar -p linux-modules-$kernel.deb $kpkg.zst | zstd -dc | tar -C / -xvf - ./boot
+ar -p linux-modules-$kernel.deb $kpkg.zst | zstd -dc | tar -C / -xvf - ./usr
+ar -p linux-modules-$kernel.deb $kpkg.zst | zstd -dc | tar -C /usr -xvf - ./lib
+ar -p linux-modules-extra-$kernel.deb $kpkg.zst | zstd -dc | tar -C /usr -xvf - ./lib
+ar -p linux-modules-extra-$kernel.deb $kpkg.zst | zstd -dc | tar -C / -xvf - ./usr
 
 if echo $option | grep -Fqx generic
 then
-  update-initramfs -ck `wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-generic.*' | sed -n '$s/-generic.*/-generic/p' | dd bs=21 skip=1`
+  update-initramfs -ck "`wget -O - $host/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-generic.*' | sed -n '$s/-generic.*/-generic/p' | dd bs=21 skip=1`"
   grub-mkconfig -o /boot/grub/grub.cfg
 elif echo $option | grep -Fqx lowlatency
 then
-  update-initramfs -ck `wget -O - http://archive.ubuntu.com/ubuntu/pool/main/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-lowlatency.*' | sed -n '$s/-lowlatency.*/-lowlatency/p' | dd bs=21 skip=1`
+  update-initramfs -ck "`wget -O - $host/l/linux-hwe-$kver/ | grep -o 'linux-image-unsigned-[0-9].*-lowlatency.*' | sed -n '$s/-lowlatency.*/-lowlatency/p' | dd bs=21 skip=1`"
   grub-mkconfig -o /boot/grub/grub.cfg
 fi
 
