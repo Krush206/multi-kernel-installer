@@ -1,7 +1,7 @@
 #!/bin/sh
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-version=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/ | sed -n '/<a href="[0-9]*\/">[0-9]*\/<\/a>/ s/[^0-9]*//p' | dd bs=2 count=1`
-kernel=`wget -O - http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/ | grep kernel-core | dd bs=21 skip=1 | sed 's/\.rpm.*//'`
+host="http://mirrors.edge.kernel.org/fedora-buffet/fedora/linux/development/rawhide/Everything/x86_64/os/Packages"
+kernel="`wget -O - $host/k/ | grep kernel-core | dd bs=21 skip=1 | sed 's/\.rpm.*//'`"
 
 ( whoami | grep -Fqx root ) || \
 eval 'echo Must be root. ; exit 1'
@@ -9,10 +9,10 @@ eval 'echo Must be root. ; exit 1'
 if [ -f /usr/bin/rpm2cpio ]
 then
   cd ~
-  wget -O kernel-core-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-core-$kernel.rpm
-  wget -O kernel-modules-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-$kernel.rpm
-  wget -O kernel-modules-extra-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-extra-$kernel.rpm
-  wget -O kernel-modules-internal-$kernel.rpm http://ewr.edge.kernel.org/fedora-buffet/fedora/linux/development/$version/Everything/x86_64/os/Packages/k/kernel-modules-internal-$kernel.rpm
+  wget -O kernel-core-$kernel.rpm $host/k/kernel-core-$kernel.rpm
+  wget -O kernel-modules-$kernel.rpm $host/k/kernel-modules-$kernel.rpm
+  wget -O kernel-modules-extra-$kernel.rpm $host/k/kernel-modules-extra-$kernel.rpm
+  wget -O kernel-modules-internal-$kernel.rpm $host/k/kernel-modules-internal-$kernel.rpm
   mkfifo cpio.exc
   echo -n ./usr/* > cpio.exc & rpm2cpio kernel-core-$kernel.rpm | cpio -D / -uidmE cpio.exc
   echo -n ./lib/* > cpio.exc & rpm2cpio kernel-core-$kernel.rpm | cpio -D /usr -uidmE cpio.exc
