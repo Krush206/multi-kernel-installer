@@ -3,8 +3,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 host="http://mirrors.edge.kernel.org/fedora-buffet/fedora/linux/development/rawhide/Everything/x86_64/os/Packages"
 kernel="`wget -O - $host/k/ | grep kernel-core | dd bs=21 skip=1 | sed 's/\.rpm.*//'`"
 
-( whoami | grep -Fqx root ) || \
-eval 'echo Must be root. ; exit 1'
+[ "`whoami`" != "root" ] && echo Must be root. && exit -1
 
 if [ -f /usr/bin/rpm2cpio ]
 then
@@ -26,7 +25,7 @@ then
   ln /lib/modules/$kernel/config /boot/config-$kernel || cp /lib/modules/$kernel/config /boot/config-$kernel
 else
   echo 'You do not have rpm2cpio installed. Install rpm2cpio and try again.'
-  exit 1
+  exit -1
 fi
 
 if [ -f /boot/vmlinuz-$kernel ] && [ -f /boot/System.map-$kernel ] &&
@@ -44,5 +43,5 @@ then
   echo 'Installation is complete! Type in (as root) "shutdown -r now" to restart.'
 else
   echo 'Installation aborted due to missing or corrupted files! Try again!'
-  exit 1
+  exit -1
 fi

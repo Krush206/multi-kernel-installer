@@ -3,8 +3,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 host="http://archive.ubuntu.com/ubuntu/pool/main"
 kver="`wget -O - $host/l/ | grep -o 'linux-hwe-[0-9].*' | sed -n '$s/\/.*//p' | dd bs=10 skip=1`"
 
-( whoami | grep -Fqx root ) || \
-eval 'echo Must be root. ; exit 1'
+[ "`whoami`" != "root" ] && echo Must be root. && exit -1
 
 echo Do you wish to install the generic or lowlatency kernel?
 read -r option
@@ -23,7 +22,7 @@ then
   wget $host/l/linux-hwe-$kver/linux-modules-extra-$kernel.deb
 else
   echo You must type in a valid kernel build.
-  exit 1
+  exit -1
 fi
 
 kpkg="data.tar"
