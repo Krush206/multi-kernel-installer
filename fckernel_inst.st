@@ -156,7 +156,7 @@ packages do: [ :pkg | | name fd url |
 [ | file stream bins initrd ret |
     'Finishing installation...' displayNl.
     bins := ReadStream on: ('update-initramfs -b ''/boot'' -c -k |',
-			    'mkinitcpio -g ''initrd.img-',
+			    'mkinitcpio -g ''/boot/initrd.img-',
 			    kernel, ''' -k |',
 			    'dracut --kver ''', kernel,
 			    ''' ''/boot/initrd.img-''').
