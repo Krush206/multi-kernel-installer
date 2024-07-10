@@ -33,11 +33,12 @@
     displayOn: stderr.
     ObjectMemory quit: -1.
 ].
-[ | path ret |
-    path := ReadStream on: (Smalltalk getenv: 'PATH').
+path := Smalltalk getenv: 'PATH'.
+[ | stream ret |
+    stream := ReadStream on: path.
     ret := false.
-    [ (path atEnd not) and: [ ret not. ]. ] whileTrue: [
-	ret := (File path: ((path upTo: $:), '/rpm2cpio')) exists.
+    [ stream atEnd not and: [ ret not. ]. ] whileTrue: [
+	ret := (File path: ((stream upTo: $:), '/rpm2cpio')) exists.
     ].
     ret ifFalse: [
 	('rpm2cpio isn''t installed. ',
@@ -49,10 +50,14 @@
 
 'Preparing to download...' displayNl.
 PackageLoader fileInPackage: 'NetClients'.
-host := 'http://mirrors.edge.kernel.org/fedora-buffet/fedora/linux/development/rawhide/Everything/x86_64/os/Packages'.
-kernel := ReadStream on: (((NetClients.URL fromString:
-			    (host, '/k/')) contents =~
-			    'kernel-core.*') match).
+host := 'http://mirrors.edge.kernel.org/fedora-buffet/fedora/linux/development/rawhide/Everything/', (Smalltalk getenv: 'MACHTYPE'), '/os/Packages/k/'.
+kernel := [ ReadStream on: (((NetClients.URL fromString: host)
+			     contents =~ 'kernel-core-.*') match). ]
+	  on: Exception do: [ :e | ('No internet connection, ',
+				    'or unsupported architecture. ',
+				    'Aborting...', (Character nl asString))
+				   displayOn: stderr.
+				   ObjectMemory quit: -1. ].
 kernel next: 12.
 kernel := kernel upToEnd copyReplacingRegex: '\.rpm.*' with: ''.
 home := Smalltalk getenv: 'HOME'.
@@ -68,91 +73,120 @@ packages do: [ :pkg | | name fd url |
     ].
     ('Downloading ', (name := name contents), '...') displayNl.
     (fd := pkg open: 'w') nextPutAll: ((url := NetClients.URL fromString:
-					(host, '/k/', name)) contents).
+					(host, name)) contents).
     fd close.
     'Verifying integrity...' displayNl.
     ((fd := pkg open: 'r') contents hash) = (url contents hash) ifFalse: [
-	('Unmatched hashes. Aborting...', (Character nl asString))
+	('Unmatched hash. Aborting...', (Character nl asString))
 	displayOn: stderr.
 	ObjectMemory quit: -1.
     ].
     fd close.
 ].
-[ | pipe exc run pkg |
-    pipe := FileDescriptor popen: ('rpm2cpio ', home,
-				   (pkg := '/kernel-core-', kernel,
-				   '.rpm')) dir: 'r'.
-    exc := FileDescriptor popen: 'cat' dir: 'w'.
-    run := FileDescriptor popen: ('cpio -D / -u -i -d -m -E /dev/fd/',
-				  (exc fd asString)) dir: 'w'.
-    './usr/*' displayOn: exc.
-    ('Installing', (pkg replaceFrom:
-    1 to: 1 with: ' ' startingAt: 1), '...') displayNl.
-    pipe displayOn: run.
+[ | pipe exc run pkg rand |
+    pipe := FileStream popen: ('rpm2cpio ', home, '/',
+			       (pkg := 'kernel-core-', kernel,
+				'.rpm')) dir: 'r'.
+    rand := Random new.
+    exc := ''.
+    [ exc size < 8. ] whileTrue: [ | char |
+	[
+	    (char := Character value:
+	     (rand next asFraction numerator
+	      bitClear: (16rFF bitInvert))) isLetter or: [
+		char isDigit. ].
+	] whileFalse.
+	exc := exc, (char asString).
+    ].
+    (exc := (File path: (home, '/', exc)) open: 'w')
+    nextPutAll: './usr/*'.
+    exc := exc reset.
+    run := FileStream popen: ('cpio -D / -u -i -d -m -E ',
+			      exc) dir: 'w'.
+    ('Installing ', pkg, '...') displayNl.
+    run nextPutAll: (pipe contents)
     pipe close.
     run close.
-    pipe := FileDescriptor popen: ('rpm2cpio ', home,
-				   '/kernel-core-', kernel,
-				   '.rpm') dir: 'r'.
-    exc := FileDescriptor popen: 'cat' dir: 'w'.
-    run := FileDescriptor popen: ('cpio -D /usr -u -i -d -m -E /dev/fd/',
-				  (exc fd asString)) dir: 'w'.
-    './lib/*' displayOn: exc.
-    pipe displayOn: run.
+    pipe := FileStream popen: ('rpm2cpio ', home, '/', pkg) dir: 'r'.
+    (exc := exc truncate) nextPutAll: './lib/*'.
+    exc := exc reset.
+    run := FileStream popen: ('cpio -D /usr -u -i -d -m -E ',
+			      exc) dir: 'w'.
+    run nextPutAll: (pipe contents)
     pipe close.
     run close.
-    pipe := FileDescriptor popen: ('rpm2cpio ', home,
-				   (pkg := '/kernel-modules-', kernel,
-				   '.rpm')) dir: 'r'.
-    run := FileDescriptor popen: 'cpio -D /usr -u -i -d -m' dir: 'w'.
-    ('Installing', (pkg replaceFrom:
-    1 to: 1 with: ' ' startingAt: 1), '...') displayNl.
-    pipe displayOn: run.
+    pipe := FileStream popen: ('rpm2cpio ', home, '/',
+			       (pkg := 'kernel-modules-', kernel,
+				'.rpm')) dir: 'r'.
+    run := FileStream popen: 'cpio -D /usr -u -i -d -m' dir: 'w'.
+    ('Installing ', pkg, '...') displayNl.
+    run nextPutAll: (pipe contents)
     pipe close.
     run close.
-    pipe := FileDescriptor popen: ('rpm2cpio ', home,
-				   (pkg := '/kernel-modules-extra-', kernel,
-				   '.rpm')) dir: 'r'.
-    run := FileDescriptor popen: ('cpio -D / -u -i -d -m -E /dev/fd/',
-				  (exc fd asString)) dir: 'w'.
-    './etc/*' displayOn: exc.
-    ('Installing', (pkg replaceFrom:
-    1 to: 1 with: ' ' startingAt: 1), '...') displayNl.
-    pipe displayOn: run.
+    pipe := FileStream popen: ('rpm2cpio ', home, '/',
+			       (pkg := 'kernel-modules-extra-', kernel,
+				'.rpm')) dir: 'r'.
+    (exc := exc truncate) nextPutAll: './etc/*'.
+    exc := exc reset.
+    run := FileStream popen: ('cpio -D / -u -i -d -m -E ',
+			      exc) dir: 'w'.
+    ('Installing ', pkg, '...') displayNl.
+    run nextPutAll: (pipe contents)
     pipe close.
     run close.
-    pipe := FileDescriptor popen: ('rpm2cpio ', home,
-				   '/kernel-modules-extra-', kernel,
-				   '.rpm') dir: 'r'.
-    run := FileDescriptor popen: ('cpio -D /usr -u -i -d -m -E /dev/fd/',
-				  (exc fd asString)) dir: 'w'.
-    './lib/*' displayOn: exc.
-    pipe displayOn: run.
-    pipe close.
-    run close.
+    pipe := FileStream popen: ('rpm2cpio ', home, '/', pkg) dir: 'r'.
+    (exc := exc truncate) nextPutAll: './lib/*'.
     exc close.
-    pipe := FileDescriptor popen: ('rpm2cpio ', home,
-				   (pkg := '/kernel-modules-internal-', kernel,
-				   '.rpm')) dir: 'r'.
-    run := FileDescriptor popen: 'cpio -D /usr -u -i -d -m' dir: 'w'.
-    ('Installing', (pkg replaceFrom:
-    1 to: 1 with: ' ' startingAt: 1), '...') displayNl.
-    pipe displayOn: run.
+    run := FileStream popen: ('cpio -D /usr -u -i -d -m -E ',
+			      exc) dir: 'w'.
+    run nextPutAll: (pipe contents)
+    pipe close.
+    run close.
+    (File path: (exc name)) remove.
+    pipe := FileStream popen: ('rpm2cpio ', home, '/',
+			       (pkg := 'kernel-modules-internal-', kernel,
+				'.rpm')) dir: 'r'.
+    run := FileStream popen: 'cpio -D /usr -u -i -d -m' dir: 'w'.
+    ('Installing ', pkg, '...') displayNl.
+    run nextPutAll: (pipe contents)
     pipe close.
     run close.
 ] value.
 
-'Finishing installation...' displayNl.
-Smalltalk system:
-('( ln -f ''/lib/modules/', kernel, '/vmlinuz'' ''/boot/vmlinuz-', kernel, ''' || ',
-'cp -f ''/lib/modules/', kernel, '/vmlinuz'' ''/boot/vmlinuz-', kernel, ''' ; ',
-'ln -f ''/lib/modules/', kernel, '/System.map'' ''/boot/System.map-', kernel, ''' || ',
-'cp -f ''/lib/modules/', kernel, '/System.map'' ''/boot/System.map-', kernel, ''' ; ',
-'ln -f ''/lib/modules/', kernel, '/config'' ''/boot/config-', kernel, ''' || ',
-'cp -f ''/lib/modules/', kernel, '/config'' ''/boot/config-', kernel, ''' ; ',
-'update-initramfs -c -k ''', kernel, ''' ; ',
-'grub-mkconfig -o ''/boot/grub/grub.cfg'' ) > /dev/null 2>&1').
-[ | file |
+[ | file stream bins initrd ret |
+    'Finishing installation...' displayNl.
+    bins := ReadStream on: ('update-initramfs -b ''/boot'' -c -k |',
+			    'mkinitcpio -g ''initrd.img-',
+			    kernel, ''' -k |',
+			    'dracut --kver ''', kernel,
+			    ''' ''/boot/initrd.img-''').
+    stream := ReadStream on: path.
+    ret := false.
+    [ stream atEnd not and: [ ret not. ]. ] whileTrue: [ | path |
+	path := stream upTo: $:.
+	[
+	    (ret := (File path: (path, '/',
+	     ((initrd := bins upTo: $|) copyReplacingRegex:
+	      ' .*' with: ''))) exists) or:
+	    [ bins atEnd. ].
+	] whileFalse.
+	bins := bins reset.
+    ].
+    ret ifFalse: [
+	('Couldn''t find an initial RAM disk generator. ',
+	 'You should perform this action manually.',
+	 (Character nl asString)) displayOn: stderr.
+	initrd := ': '.
+    ].
+    Smalltalk system:
+    ('( ln -f ''/lib/modules/', kernel, '/vmlinuz'' ''/boot/vmlinuz-', kernel, ''' || ',
+    'cp -f ''/lib/modules/', kernel, '/vmlinuz'' ''/boot/vmlinuz-', kernel, ''' ; ',
+    'ln -f ''/lib/modules/', kernel, '/System.map'' ''/boot/System.map-', kernel, ''' || ',
+    'cp -f ''/lib/modules/', kernel, '/System.map'' ''/boot/System.map-', kernel, ''' ; ',
+    'ln -f ''/lib/modules/', kernel, '/config'' ''/boot/config-', kernel, ''' || ',
+    'cp -f ''/lib/modules/', kernel, '/config'' ''/boot/config-', kernel, ''' ; ',
+    initrd, '''', kernel, ''' ; ',
+    'grub-mkconfig -o ''/boot/grub/grub.cfg'' ) > /dev/null 2>&1').
     (file := File path: '/vmlinuz') exists ifTrue: [
 	file remove.
     ].
@@ -167,9 +201,9 @@ packages do: [ :pkg |
 ].
 [ | answer |
     ('Installation is complete!',
-    'Would you like to restart the system now? [n] ') display.
+     'Would you like to restart the system now? [n] ') display.
     (((answer := stdin nextLine) notNil and: [
-	(answer size) > 0. ]) and: [
+	answer size > 0. ]) and: [
 	(answer asUppercase at: 1) = $Y. ]) ifTrue: [
-	Smalltalk system: 'shutdown -r now'. ].
+	Smalltalk system: '( shutdown -r now & ) < /dev/null > /dev/null 2>&1'. ].
 ] value.
